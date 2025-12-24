@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гонки с препятствиями</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 800px;
+            max-width: 100%;
+        }
+        
+        h1 {
+            color: #f8c555;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(248, 197, 85, 0.5);
+        }
+        
+        .description {
+            color: #a0a0c0;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4dccbd;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #a0a0c0;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 800px;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        #gameCanvas {
+            background-color: #0f3460;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: block;
+            width: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            width: 800px;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .controls h3 {
+            color: #f8c555;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .keys {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .key-row {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        
+        .key {
+            width: 60px;
+            height: 60px;
+            background-color: #2d3047;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #f8c555;
+            box-shadow: 0 4px 0 #1a1a2e;
+            user-select: none;
+        }
+        
+        .key.space {
+            width: 200px;
+            font-size: 1rem;
+        }
+        
+        .key.active {
+            background-color: #4dccbd;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1a1a2e;
+        }
+        
+        .instructions {
+            text-align: center;
+            color: #a0a0c0;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .game-over h2 {
+            color: #e94560;
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .final-score {
+            font-size: 2rem;
+            color: #4dccbd;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            background-color: #4dccbd;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #f8c555;
+            transform: scale(1.05);
+        }
+        
+        .mobile-controls {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .mobile-controls-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .mobile-btn {
+            width: 70px;
+            height: 70px;
+            background-color: #2d3047;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 15px;
+            font-weight: bold;
+            font-size: 1.8rem;
+            color: #f8c555;
+            user-select: none;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .header, .game-container, .controls {
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .mobile-controls {
+                display: block;
+            }
+            
+            .keys {
+                display: none;
+            }
+            
+            .key {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ГОНКИ С ПРЕПЯТСТВИЯМИ</h1>
+        <p class="description">Управляйте машинкой, избегайте препятствий и набирайте очки. Машинка движется сама, ваша задача - вовремя поворачивать!</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">ОЧКИ</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="speed">1</div>
+                <div class="stat-label">СКОРОСТЬ</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="lives">3</div>
+                <div class="stat-label">ЖИЗНИ</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="level">1</div>
+                <div class="stat-label">УРОВЕНЬ</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div class="game-over" id="gameOverScreen">
+            <h2>ИГРА ОКОНЧЕНА</h2>
+            <div class="final-score">Ваш счет: <span id="finalScore">0</span></div>
+            <button id="restartButton">ИГРАТЬ СНОВА</button>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <h3>УПРАВЛЕНИЕ</h3>
+        
+        <div class="keys">
+            <div class="key-row">
+                <div class="key" id="keyUp">↑</div>
+            </div>
+<div class="key-row">
+                <div class="key" id="keyLeft">←</div>
+                <div class="key" id="keyDown">↓</div>
+                <div class="key" id="keyRight">→</div>
+            </div>
+        </div>
+        
+        <p class="instructions">Используйте клавиши со стрелками для управления машинкой. Избегайте столкновений с препятствиями!</p>
+    </div>
+    
+    <div class="mobile-controls">
+        <div class="mobile-controls-row">
+            <div class="mobile-btn" id="mobileUp">↑</div>
+        </div>
+        <div class="mobile-controls-row">
+            <div class="mobile-btn" id="mobileLeft">←</div>
+            <div class="mobile-btn" id="mobileDown">↓</div>
+            <div class="mobile-btn" id="mobileRight">→</div>
+        </div>
+    </div>
+
+    <script>
+        // Получаем элементы canvas и контекст
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Элементы UI
+        const scoreElement = document.getElementById('score');
+        const speedElement = document.getElementById('speed');
+        const livesElement = document.getElementById('lives');
+        const levelElement = document.getElementById('level');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreElement = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
+
+        // Клавиши управления
+        const keyUp = document.getElementById('keyUp');
+        const keyDown = document.getElementById('keyDown');
+        const keyLeft = document.getElementById('keyLeft');
+        const keyRight = document.getElementById('keyRight');
+
+        // Мобильные кнопки
+        const mobileUp = document.getElementById('mobileUp');
+        const mobileDown = document.getElementById('mobileDown');
+        const mobileLeft = document.getElementById('mobileLeft');
+        const mobileRight = document.getElementById('mobileRight');
+
+        // Игровые переменные
+        let score = 0;
+        let speed = 3;
+        let lives = 3;
+        let level = 1;
+        let gameOver = false;
+        let gameRunning = true;
+        let lastTime = 0;
+        let obstacleSpawnTimer = 0;
+        let roadLines = [];
+
+        // Машинка
+        const car = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 40,
+            height: 60,
+            speed: 5,
+            color: '#e94560',
+            direction: 0, // -1 - влево, 0 - прямо, 1 - вправо
+            moving: false
+        };
+
+        // Препятствия
+        let obstacles = [];
+
+        // Клавиши управления
+        const keys = {
+            ArrowUp: false,
+            ArrowDown: false,
+            ArrowLeft: false,
+            ArrowRight: false
+        };
+
+        // Инициализация дорожной разметки
+        function initRoadLines() {
+            roadLines = [];
+            for (let i = 0; i < 5; i++) {
+                roadLines.push({
+                    x: canvas.width / 2 - 2.5,
+                    y: i * 100,
+                    width: 5,
+                    height: 30,
+                    speed: speed
+                });
+            }
+        }
+
+        // Создание препятствия
+        function createObstacle() {
+            const types = ['rectangle', 'circle', 'triangle'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            let width, height;
+            if (type === 'circle') {
+                width = height = 30 + Math.random() * 30;
+            } else {
+                width = 30 + Math.random() * 40;
+                height = 30 + Math.random() * 40;
+            }
+            
+            return {
+                x: Math.random() * (canvas.width - width),
+                y: -height,
+                width: width,
+                height: height,
+                type: type,
+                color: hsl(${Math.random() * 60 + 10}, 70%, 50%), // Оттенки оранжевого/желтого
+                speed: speed + Math.random() * 2
+            };
+        }
+// Отрисовка машинки
+        function drawCar() {
+            ctx.save();
+            ctx.translate(car.x, car.y);
+            
+            // Кузов машинки
+            ctx.fillStyle = car.color;
+            ctx.fillRect(-car.width/2, -car.height/2, car.width, car.height);
+            
+            // Верхняя часть (кабина)
+            ctx.fillStyle = '#f8c555';
+            ctx.fillRect(-car.width/3, -car.height/2, car.width*0.66, car.height*0.4);
+            
+            // Фары
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(car.width/2 - 8, -car.height/4, 5, 10); // Правая фара
+            ctx.fillRect(-car.width/2 + 3, -car.height/4, 5, 10); // Левая фара
+            
+            // Колеса
+            ctx.fillStyle = '#333';
+            ctx.fillRect(-car.width/2 - 5, -car.height/2 + 5, 8, car.height - 10); // Левое колесо
+            ctx.fillRect(car.width/2 - 3, -car.height/2 + 5, 8, car.height - 10); // Правое колесо
+            
+            ctx.restore();
+        }
+
+        // Отрисовка препятствия
+        function drawObstacle(obstacle) {
+            ctx.fillStyle = obstacle.color;
+            
+            switch(obstacle.type) {
+                case 'rectangle':
+                    ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    break;
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2, obstacle.width/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                case 'triangle':
+                    ctx.beginPath();
+                    ctx.moveTo(obstacle.x + obstacle.width/2, obstacle.y);
+                    ctx.lineTo(obstacle.x, obstacle.y + obstacle.height);
+                    ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    break;
+            }
+            
+            // Добавляем контур для лучшей видимости
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            
+            switch(obstacle.type) {
+                case 'rectangle':
+                    ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    break;
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2, obstacle.width/2, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                case 'triangle':
+                    ctx.beginPath();
+                    ctx.moveTo(obstacle.x + obstacle.width/2, obstacle.y);
+                    ctx.lineTo(obstacle.x, obstacle.y + obstacle.height);
+                    ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height);
+                    ctx.closePath();
+                    ctx.stroke();
+                    break;
+            }
+        }
+
+        // Отрисовка дорожной разметки
+        function drawRoadLines() {
+            ctx.fillStyle = '#f8c555';
+            
+            for (let line of roadLines) {
+                ctx.fillRect(line.x, line.y, line.width, line.height);
+            }
+        }
+
+        // Проверка столкновения
+        function checkCollision(car, obstacle) {
+            // Упрощенная проверка столкновения (AABB для прямоугольников)
+            if (obstacle.type === 'circle') {
+                // Проверка столкновения с кругом
+                const circleX = obstacle.x + obstacle.width/2;
+                const circleY = obstacle.y + obstacle.height/2;
+                const circleRadius = obstacle.width/2;
+                
+                // Находим ближайшую точку к кругу на прямоугольнике машинки
+const closestX = Math.max(car.x - car.width/2, Math.min(circleX, car.x + car.width/2));
+                const closestY = Math.max(car.y - car.height/2, Math.min(circleY, car.y + car.height/2));
+                
+                // Вычисляем расстояние от центра круга до этой точки
+                const distanceX = circleX - closestX;
+                const distanceY = circleY - closestY;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                return distance <= circleRadius;
+            } else {
+                // Проверка столкновения для прямоугольников и треугольников
+                return car.x + car.width/2 > obstacle.x &&
+                       car.x - car.width/2 < obstacle.x + obstacle.width &&
+                       car.y + car.height/2 > obstacle.y &&
+                       car.y - car.height/2 < obstacle.y + obstacle.height;
+            }
+        }
+
+        // Обновление состояния игры
+        function updateGame(deltaTime) {
+            if (!gameRunning) return;
+            
+            // Обновление позиции машинки
+            if (car.direction !== 0) {
+                car.x += car.direction * car.speed;
+                car.moving = true;
+                
+                // Ограничение движения в пределах дороги
+                if (car.x < car.width/2 + 20) car.x = car.width/2 + 20;
+                if (car.x > canvas.width - car.width/2 - 20) car.x = canvas.width - car.width/2 - 20;
+            } else {
+                car.moving = false;
+            }
+            
+            // Обновление дорожной разметки
+            for (let line of roadLines) {
+                line.y += line.speed;
+                if (line.y > canvas.height) {
+                    line.y = -line.height;
+                }
+            }
+            
+            // Обновление препятствий
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                obstacle.y += obstacle.speed;
+                
+                // Проверка столкновения
+                if (checkCollision(car, obstacle)) {
+                    obstacles.splice(i, 1);
+                    lives--;
+                    livesElement.textContent = lives;
+                    
+                    if (lives <= 0) {
+                        endGame();
+                        return;
+                    }
+                }
+                
+                // Удаление препятствий, уехавших за экран
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    scoreElement.textContent = score;
+                }
+            }
+            
+            // Создание новых препятствий
+            obstacleSpawnTimer += deltaTime;
+            const spawnRate = Math.max(300, 1000 - level * 100); // Уменьшаем интервал с каждым уровнем
+            if (obstacleSpawnTimer > spawnRate) {
+                obstacles.push(createObstacle());
+                obstacleSpawnTimer = 0;
+            }
+            
+            // Обновление скорости и уровня
+            if (score >= level * 100) {
+                level++;
+                levelElement.textContent = level;
+                speed += 0.5;
+                speedElement.textContent = speed.toFixed(1);
+                
+                // Обновляем скорость дорожной разметки
+                for (let line of roadLines) {
+                    line.speed = speed;
+                }
+            }
+        }
+
+        // Отрисовка игры
+        function drawGame() {
+            // Очистка холста
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Рисуем дорогу
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Рисуем дорожную разметку
+            drawRoadLines();
+            
+            // Рисуем препятствия
+            for (let obstacle of obstacles) {
+                drawObstacle(obstacle);
+            }
+            
+            // Рисуем машинку
+            drawCar();
+            
+            // Рисуем границы дороги
+            ctx.strokeStyle = '#f8c555';
+            ctx.lineWidth = 5;
+            ctx.strokeRect(20, 0, canvas.width - 40, canvas.height);
+        }
+
+        // Основной игровой цикл
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime || 0;
